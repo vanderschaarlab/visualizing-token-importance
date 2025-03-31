@@ -5,7 +5,10 @@
 # We demonstrate using the AzureOpenAI API
 # We also append an example of these two functions using open-source LLMs
 
-from dbsa.utils.openai_config import get_llm_config, get_embedding_config # You need to create this function
+from dbsa.utils.openai_config import (
+    get_llm_config,
+    get_embedding_config,
+)  # You need to create this function
 from openai import AzureOpenAI
 import numpy as np
 import transformers
@@ -28,20 +31,21 @@ embedding_client = AzureOpenAI(
     azure_endpoint=embedding_config["api_endpoint"],
 )
 
+
 def get_embeddings(texts):
     """
     Get embeddings for the input texts using Azure OpenAI API.
     Plural, because generally the input is a Monte-Carlo sample approximate of the LLM output distribution, i.e. list of strings.
     Args:
         texts (List[float]): The input texts to embed.
-    
+
     Returns:
         List[float]: The embedding vector.
     """
 
     result = []
     for text in texts:
-        if text != None and len(text) > 0:
+        if text is not None and len(text) > 0:
             response = embedding_client.embeddings.create(
                 input=text,
                 model=embedding_config["embedding_model_deployment_id"],
@@ -49,12 +53,13 @@ def get_embeddings(texts):
             result.append(response.data[0].embedding)
     return np.array(result)
 
+
 def get_responses(prompt, model_id=None, n=20):
     """
     Get responses to the input prompt using Azure OpenAI API.
     Args:
         prompt (str): The input prompt.
-    
+
     Returns:
         List[str]: The response to the prompt.
     """
@@ -64,20 +69,25 @@ def get_responses(prompt, model_id=None, n=20):
             max_tokens=256,
             temperature=1,
             n=n,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+            messages=[{"role": "user", "content": prompt}],
         )
         return [choice.message.content for choice in response.choices]
-    else: #if you wish to run the open-source models in the experiments
+    else:  # if you wish to run the open-source models in the experiments
         generator = transformers.pipeline(
             "text-generation",
             model=model_id,
             model_kwargs={"torch_dtype": torch.bfloat16},
-            device_map="auto"
+            device_map="auto",
         )
-        outputs = generator(prompt, max_length=256, truncation=True, num_return_sequences=20, do_sample=True)
+        outputs = generator(
+            prompt,
+            max_length=256,
+            truncation=True,
+            num_return_sequences=20,
+            do_sample=True,
+        )
         return [output["generated_text"] for output in outputs]
+
 
 # Here is what these two functions might look like if using an open-source model
 # import tensorflow_hub as hub

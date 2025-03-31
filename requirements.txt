@@ -1,8 +1,10 @@
-numpy
-scipy
-scikit-learn
-tqdm
-matplotlib
-openai
 gensim
+matplotlib
+numpy
+openai
+scikit-learn
+scipy
 seaborn
+torch
+tqdm
+transformers
