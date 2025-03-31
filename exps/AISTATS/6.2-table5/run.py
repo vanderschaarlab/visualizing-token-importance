@@ -1,5 +1,6 @@
 # Main execution
 
+from collections import Counter
 import json
 import matplotlib.pyplot as plt
 import numpy as np
@@ -88,9 +89,9 @@ MODEL_IDS = [
     "HuggingFaceTB/SmolLM-135M",
     "Gustavosta/MagicPrompt-Stable-Diffusion",
     "microsoft/Phi-3-mini-4k-instruct",
-    "mistralai/Mistral-7B-Instruct-v0.2",
-    "meta-llama/Meta-Llama-3.1-8B-Instruct",
-    "google/gemma-2-9b-it",
+    # "mistralai/Mistral-7B-Instruct-v0.2",
+    # "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    # "google/gemma-2-9b-it",
 ]
 
 
@@ -209,6 +210,7 @@ with open(prefix + "Meta-Llama-3.1-8B-Instruct_scores.json") as f:
     data6 = json.load(f)
 with open(prefix + "gemma-2-9b-it_scores.json") as f:
     data8 = json.load(f)
+
 delete = []
 for k in data1.keys():
     if k not in data4:
@@ -220,6 +222,7 @@ for k in delete:
     data5.pop(k)
     data6.pop(k)
     data8.pop(k)
+
 d = {
     "SmolLM-135M": [v[0] for v in data1.values()],
     "Phi-3-mini-4k-instruct": [v[0] for v in data2.values()],
@@ -230,6 +233,13 @@ d = {
     "gpt-35-1106-vdsT-AE": [v[0] for v in data7.values()],
     "gemma-2-9b-it": [v[0] for v in data8.values()],
 }
+# Handle different lengths in scores
+# Determine the most common length among the entries
+lengths = Counter(len(v) for v in d.values())
+most_common_length = lengths.most_common(1)[0][0]
+# Remove any keys whose list length does not match the most common length
+d = {k: v for k, v in d.items() if len(v) == most_common_length}
+
 df = pd.DataFrame(data=d)
 corr = df.corr(method="spearman")
 sns.heatmap(corr, annot=True, fmt=".2f")
